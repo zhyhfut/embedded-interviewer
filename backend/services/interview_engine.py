@@ -32,7 +32,7 @@ class InterviewEngine:
             if self.session.topics_covered
             else "无"
         )
-        prompt_template = get_system_prompt(self.session.direction)
+        prompt_template = get_system_prompt(self.session.direction, self.session.pressure)
         return prompt_template.format(
             resume_text=self.session.resume_text or "（无简历）",
             target_company=self.session.target_company or "未指定",

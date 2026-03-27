@@ -28,6 +28,7 @@ class Message:
 class InterviewSession:
     session_id: str = field(default_factory=lambda: str(uuid.uuid4())[:8])
     direction: str = "embedded"  # "embedded" 或 "embodied"
+    pressure: bool = False  # 压力面模式
     resume_text: str = ""
     target_company: str = ""
     target_direction: str = ""

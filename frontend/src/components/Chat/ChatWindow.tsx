@@ -1,6 +1,41 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import type { Message } from '../../types';
 import MessageBubble from './MessageBubble';
+
+// Web Speech API 类型声明
+interface SpeechRecognitionEvent extends Event {
+  results: SpeechRecognitionResultList;
+}
+interface SpeechRecognitionResultList {
+  length: number;
+  item(index: number): SpeechRecognitionResult;
+  [index: number]: SpeechRecognitionResult;
+}
+interface SpeechRecognitionResult {
+  isFinal: boolean;
+  [index: number]: SpeechRecognitionAlternative;
+}
+interface SpeechRecognitionAlternative {
+  transcript: string;
+}
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onresult: ((event: SpeechRecognitionEvent) => void) | null;
+  onend: (() => void) | null;
+  onerror: ((event: Event) => void) | null;
+  start: () => void;
+  stop: () => void;
+  abort: () => void;
+}
+
+declare global {
+  interface Window {
+    SpeechRecognition?: new () => SpeechRecognition;
+    webkitSpeechRecognition?: new () => SpeechRecognition;
+  }
+}
 
 interface Props {
   messages: Message[];
@@ -22,14 +57,18 @@ export default function ChatWindow({
   onReset,
 }: Props) {
   const [input, setInput] = useState('');
+  const [isRecording, setIsRecording] = useState(false);
+  const [speechSupported] = useState(() => {
+    return !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+  });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // 自动调整 textarea 高度
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
@@ -51,14 +90,58 @@ export default function ChatWindow({
     }
   };
 
-  // 判断最后一条消息是否正在流式输出
+  // 语音识别
+  const toggleRecording = useCallback(() => {
+    if (!speechSupported) return;
+
+    if (isRecording) {
+      recognitionRef.current?.stop();
+      setIsRecording(false);
+      return;
+    }
+
+    const SpeechRecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognitionClass) return;
+
+    const recognition = new SpeechRecognitionClass();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'zh-CN';
+
+    let finalTranscript = input;
+
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      let interim = '';
+      for (let i = 0; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript;
+        } else {
+          interim += transcript;
+        }
+      }
+      setInput(finalTranscript + interim);
+    };
+
+    recognition.onend = () => {
+      setIsRecording(false);
+    };
+
+    recognition.onerror = () => {
+      setIsRecording(false);
+    };
+
+    recognition.start();
+    recognitionRef.current = recognition;
+    setIsRecording(true);
+  }, [isRecording, speechSupported, input]);
+
   const isLastStreaming =
     isLoading &&
     messages.length > 0 &&
     messages[messages.length - 1].role === 'interviewer' &&
     messages[messages.length - 1].content.length > 0;
 
-  // 面试官正在生成但还没开始输出（显示思考状态）
   const isThinking =
     isLoading &&
     messages.length > 0 &&
@@ -77,7 +160,6 @@ export default function ChatWindow({
           />
         ))}
 
-        {/* 独立的思考指示器（当最后一条是空的面试官消息时显示更漂亮的版本） */}
         {isThinking && (
           <div className="flex justify-start bubble-in">
             <div className="bg-[var(--interviewer-bg)] rounded-2xl rounded-bl-md px-5 py-4 max-w-[200px]">
@@ -128,12 +210,31 @@ export default function ChatWindow({
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="输入你的回答... (Shift+Enter 换行)"
+                placeholder={isRecording ? "正在录音...点击麦克风停止" : "输入你的回答... (Shift+Enter 换行)"}
                 rows={1}
                 disabled={isLoading}
-                className="w-full bg-[var(--bg-tertiary)] border border-[var(--border)] rounded-xl px-4 py-3 text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] resize-none focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]/30 disabled:opacity-50 transition-all"
+                className={`w-full bg-[var(--bg-tertiary)] border rounded-xl px-4 py-3 pr-12 text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] resize-none focus:outline-none focus:ring-1 focus:ring-[var(--accent)]/30 disabled:opacity-50 transition-all ${
+                  isRecording ? 'border-red-500/50 focus:border-red-500' : 'border-[var(--border)] focus:border-[var(--accent)]'
+                }`}
                 style={{ minHeight: '44px', maxHeight: '150px' }}
               />
+              {/* 语音输入按钮 */}
+              {speechSupported && (
+                <button
+                  onClick={toggleRecording}
+                  disabled={isLoading}
+                  className={`absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full transition-all ${
+                    isRecording
+                      ? 'bg-red-500 text-white animate-pulse'
+                      : 'text-[var(--text-secondary)] hover:text-white hover:bg-[var(--bg-tertiary)]'
+                  }`}
+                  title={isRecording ? "停止录音" : "语音输入"}
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                  </svg>
+                </button>
+              )}
             </div>
             <button
               onClick={handleSend}

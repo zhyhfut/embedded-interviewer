@@ -118,12 +118,16 @@ async def start_interview(
     difficulty: Optional[str] = Form(None),
     model: Optional[str] = Form(None),
     direction: Optional[str] = Form(None),
+    pressure: Optional[str] = Form(None),
 ):
     """启动面试，支持文件上传/飞书链接/文本三种简历输入"""
     session = InterviewSession()
 
     if direction and direction in ("embedded", "embodied"):
         session.direction = direction
+
+    if pressure and pressure.lower() in ("true", "1", "yes"):
+        session.pressure = True
 
     if resume_file:
         file_bytes = await resume_file.read()

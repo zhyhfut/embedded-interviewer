@@ -8,6 +8,7 @@ interface Props {
       difficulty?: string;
       model?: string;
       direction?: string;
+      pressure?: boolean;
     },
     file?: File,
   ) => void;
@@ -21,6 +22,7 @@ interface Provider {
 
 export default function SetupPanel({ onStart, isLoading }: Props) {
   const [direction, setDirection] = useState('embedded');
+  const [pressure, setPressure] = useState(false);
   const [resumeText, setResumeText] = useState('');
   const [feishuLink, setFeishuLink] = useState('');
   const [difficulty, setDifficulty] = useState('SP');
@@ -51,7 +53,7 @@ export default function SetupPanel({ onStart, isLoading }: Props) {
   }, []);
 
   const handleStart = () => {
-    const config: any = { difficulty, model, direction };
+    const config: any = { difficulty, model, direction, pressure };
     if (inputMode === 'text' && resumeText.trim()) {
       config.resumeText = resumeText.trim();
     } else if (inputMode === 'feishu' && feishuLink.trim()) {
@@ -288,6 +290,30 @@ export default function SetupPanel({ onStart, isLoading }: Props) {
               ))}
             </div>
           )}
+        </div>
+
+        {/* 压力面模式 */}
+        <div className="mb-6">
+          <label className="flex items-center gap-3 cursor-pointer group">
+            <div
+              onClick={() => setPressure(!pressure)}
+              className={`w-10 h-6 rounded-full transition-colors relative ${
+                pressure ? 'bg-red-500' : 'bg-[var(--bg-tertiary)]'
+              }`}
+            >
+              <div
+                className={`w-5 h-5 rounded-full bg-white absolute top-0.5 transition-transform ${
+                  pressure ? 'translate-x-4.5' : 'translate-x-0.5'
+                }`}
+              />
+            </div>
+            <div>
+              <span className="text-sm font-medium">压力面模式</span>
+              <span className="text-xs text-[var(--text-secondary)] ml-2">
+                更激进的追问，像大疆/华为终面一样
+              </span>
+            </div>
+          </label>
         </div>
 
         {/* 开始按钮 */}

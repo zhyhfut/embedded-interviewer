@@ -7,6 +7,7 @@ export async function startInterview(
     difficulty?: string;
     model?: string;
     direction?: string;
+    pressure?: boolean;
   },
   resumeFile?: File,
   onChunk?: (content: string) => void,
@@ -30,6 +31,9 @@ export async function startInterview(
   }
   if (config.direction) {
     formData.append('direction', config.direction);
+  }
+  if (config.pressure) {
+    formData.append('pressure', 'true');
   }
 
   const response = await fetch(`${API_BASE}/interview/start`, {
