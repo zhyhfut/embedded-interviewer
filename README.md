@@ -70,6 +70,7 @@
 
 ### 方法一：一键安装脚本（推荐）
 
+**Linux / macOS：**
 ```bash
 # 1. 克隆或下载项目
 cd embedded-interviewer
@@ -79,15 +80,59 @@ chmod +x install.sh
 ./install.sh
 
 # 3. 编辑配置文件（填入 API Key）
-# Linux/macOS:
 nano .env
-# Windows:
+
+# 4. 启动后端
+cd backend
+source venv/bin/activate
+uvicorn main:app --reload
+
+# 5. 新开一个终端，启动前端
+cd frontend
+npm run dev
+
+# 6. 浏览器访问 http://localhost:3000
+```
+
+**Windows（CMD）：**
+```cmd
+REM 1. 进入项目目录
+cd embedded-interviewer
+
+REM 2. 运行安装脚本（双击 install.bat 或在 CMD 中运行）
+install.bat
+
+REM 3. 编辑配置文件（填入 API Key）
+notepad .env
+
+REM 4. 启动后端
+cd backend
+venv\Scripts\activate
+uvicorn main:app --reload
+
+REM 5. 新开一个终端，启动前端
+cd frontend
+npm run dev
+
+REM 6. 浏览器访问 http://localhost:3000
+```
+
+**Windows（PowerShell）：**
+```powershell
+# 1. 进入项目目录
+cd embedded-interviewer
+
+# 2. 运行安装脚本
+.\install.ps1
+# 如果提示执行策略限制，先运行：
+# Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+
+# 3. 编辑配置文件（填入 API Key）
 notepad .env
 
 # 4. 启动后端
 cd backend
-source venv/bin/activate    # Linux/macOS
-# venv\Scripts\activate     # Windows
+.\venv\Scripts\Activate.ps1
 uvicorn main:app --reload
 
 # 5. 新开一个终端，启动前端
@@ -101,8 +146,12 @@ npm run dev
 
 ```bash
 # 1. 编辑 .env 填入 API Key
-cp .env.example .env
-nano .env
+# Linux/macOS:
+cp .env.example .env && nano .env
+# Windows (CMD):
+copy .env.example .env && notepad .env
+# Windows (PowerShell):
+Copy-Item .env.example .env; notepad .env
 
 # 2. 一键启动
 docker compose up --build
@@ -134,7 +183,9 @@ sudo apt install python3 python3-pip python3-venv
 
 **验证安装：**
 ```bash
-python3 --version
+python3 --version    # Linux/macOS
+# 或
+python --version     # Windows
 # 应显示 Python 3.10.x 或更高
 ```
 
@@ -155,18 +206,28 @@ npm --version
 ### 第三步：安装项目依赖
 
 **后端：**
+
+Linux / macOS：
 ```bash
 cd backend
-
-# 创建虚拟环境
 python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
 
-# 激活虚拟环境
-source venv/bin/activate    # Linux/macOS
-# venv\Scripts\activate     # Windows (cmd)
-# venv\Scripts\Activate.ps1 # Windows (PowerShell)
+Windows CMD：
+```cmd
+cd backend
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+```
 
-# 安装依赖
+Windows PowerShell：
+```powershell
+cd backend
+python -m venv venv
+.\venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 ```
 
@@ -180,9 +241,18 @@ npm install
 
 ```bash
 # 复制配置模板
+# Linux/macOS:
 cp .env.example .env
+# Windows CMD:
+copy .env.example .env
+# Windows PowerShell:
+Copy-Item .env.example .env
 
 # 编辑 .env 文件，填入至少一个 API Key
+# Linux/macOS:
+nano .env
+# Windows:
+notepad .env
 ```
 
 **最简单的配置（使用免费的小米 MiMo）：**
@@ -206,11 +276,28 @@ XIAOMI_API_KEY=你的小米API密钥
 ### 第五步：启动服务
 
 **启动后端（终端 1）：**
+
+Linux / macOS：
 ```bash
 cd backend
 source venv/bin/activate
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
+
+Windows CMD：
+```cmd
+cd backend
+venv\Scripts\activate
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```
+
+Windows PowerShell：
+```powershell
+cd backend
+.\venv\Scripts\Activate.ps1
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```
+
 看到 `Application startup complete.` 就表示后端启动成功。
 
 **启动前端（终端 2）：**
@@ -326,6 +413,8 @@ XIAOMI_MODEL=MiMo
 ```
 
 重启后端：
+
+**Linux / macOS：**
 ```bash
 # 找到并关闭旧进程
 kill $(lsof -ti:8000) 2>/dev/null
@@ -333,6 +422,27 @@ kill $(lsof -ti:8000) 2>/dev/null
 # 重新启动
 cd backend
 python3 -m uvicorn main:app --host 0.0.0.0 --port 8000
+```
+
+**Windows（CMD / PowerShell）：**
+```cmd
+REM 找到并关闭占用 8000 端口的进程
+for /f "tokens=5" %a in ('netstat -ano ^| findstr :8000 ^| findstr LISTENING') do taskkill /PID %a /F
+
+REM 重新启动
+cd backend
+venv\Scripts\activate
+python -m uvicorn main:app --host 0.0.0.0 --port 8000
+```
+
+```powershell
+# 找到并关闭占用 8000 端口的进程
+Get-NetTCPConnection -LocalPort 8000 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }
+
+# 重新启动
+cd backend
+.\venv\Scripts\Activate.ps1
+python -m uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
 ### 示例：接入新的第三方 API（如硅基流动 SiliconFlow）
@@ -407,7 +517,9 @@ curl https://xxx.com/v1/chat/completions \
 
 ```
 embedded-interviewer/
-├── install.sh                   # 一键安装脚本
+├── install.sh                   # 一键安装脚本（Linux/macOS）
+├── install.bat                  # 一键安装脚本（Windows CMD）
+├── install.ps1                  # 一键安装脚本（Windows PowerShell）
 ├── docker-compose.yml           # Docker 编排
 ├── .env.example                 # 环境变量模板
 ├── .env                         # 你的配置（git 不跟踪）
@@ -519,8 +631,8 @@ A: 系统会自动将简历缓存到 `data/resumes/` 目录，长对话中会自
 ### Q: 如何使用飞书导出报告功能
 A: 需要在 .env 中配置 FEISHU_APP_ID 和 FEISHU_APP_SECRET（从飞书开放平台获取），并授权文档读写权限。
 
-### Q: Windows 上运行 install.sh 报错
-A: Windows 用户可以用 Git Bash 运行，或者手动执行安装步骤（见"详细安装步骤"）。
+### Q: Windows 上怎么安装
+A: Windows 用户可以直接运行 `install.bat`（CMD）或 `install.ps1`（PowerShell）。如果用 Git Bash 可以运行 `install.sh`。也可以手动执行"详细安装步骤"。
 
 ---
 
