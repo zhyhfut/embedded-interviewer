@@ -7,18 +7,40 @@ echo   嵌入式面试模拟 Agent — 一键安装脚本
 echo ==========================================
 echo.
 
-REM 检查 Python
-where python >nul 2>&1
-if %errorlevel% neq 0 (
-    echo [错误] 未找到 python，请先安装 Python 3.10+
-    echo   访问 https://www.python.org/downloads/ 下载安装
-    echo   安装时勾选 "Add Python to PATH"
+REM 检查 Python（需要能实际运行，不能只是 Microsoft Store 占位程序）
+set PYTHON_CMD=
+set PYTHON_VERSION=
+
+REM 尝试 python
+for /f "tokens=2" %%i in ('python --version 2^>^&1') do (
+    set PYTHON_VERSION=%%i
+    set PYTHON_CMD=python
+)
+
+REM 如果 python 不行，尝试 py 启动器
+if not defined PYTHON_CMD (
+    for /f "tokens=2" %%i in ('py --version 2^>^&1') do (
+        set PYTHON_VERSION=%%i
+        set PYTHON_CMD=py
+    )
+)
+
+if not defined PYTHON_CMD (
+    echo [错误] Python 未安装或不可用
+    echo.
+    echo   检测到的 "python" 命令可能是 Microsoft Store 占位程序，不是真正的 Python。
+    echo   请安装真正的 Python：
+    echo   1. 访问 https://www.python.org/downloads/
+    echo   2. 下载 Python 3.10+ 安装包
+    echo   3. 安装时勾选 "Add Python to PATH"
+    echo.
+    echo   或者在 Windows 设置中关闭 App Execution Alias：
+    echo   设置 -^> 应用 -^> 高级应用设置 -^> 应用执行别名 -^> 关闭 python.exe
     pause
     exit /b 1
 )
 
-for /f "tokens=2" %%i in ('python --version 2^>^&1') do set PYTHON_VERSION=%%i
-echo [OK] Python %PYTHON_VERSION%
+echo [OK] Python !PYTHON_VERSION!（使用 !PYTHON_CMD!）
 
 REM 检查 Node.js
 where node >nul 2>&1
@@ -44,7 +66,13 @@ echo.
 echo ---- 安装后端依赖 ----
 cd /d "%~dp0backend"
 
-python -m venv venv 2>nul
+!PYTHON_CMD! -m venv venv 2>nul
+if not exist "venv\Scripts\activate.bat" (
+    echo [错误] 创建虚拟环境失败
+    echo   请确认 Python 安装时包含了 pip 和 venv 模块
+    pause
+    exit /b 1
+)
 call venv\Scripts\activate.bat
 pip install -r requirements.txt -q
 if %errorlevel% neq 0 (
