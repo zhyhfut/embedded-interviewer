@@ -114,10 +114,11 @@ echo   下一步：
 echo   1. 编辑 .env 文件，填入至少一个 API Key
 echo      推荐：小米 MiMo（免费）或 豆包
 echo.
-echo   2. 启动服务：
+echo   2. 一键启动（推荐）：
+echo      start.bat
+echo.
+echo   或手动启动：
 echo      后端: cd backend ^&^& venv\Scripts\activate ^&^& uvicorn main:app --reload
 echo      前端: cd frontend ^&^& npm run dev
-echo.
-echo   3. 浏览器访问: http://localhost:3000
 echo.
 pause

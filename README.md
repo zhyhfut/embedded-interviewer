@@ -68,7 +68,7 @@
 
 ## 快速开始（5 分钟上手）
 
-### 方法一：一键安装脚本（推荐）
+### 方法一：一键安装 + 一键启动（推荐）
 
 **Linux / macOS：**
 ```bash
@@ -82,16 +82,8 @@ chmod +x install.sh
 # 3. 编辑配置文件（填入 API Key）
 nano .env
 
-# 4. 启动后端
-cd backend
-source venv/bin/activate
-uvicorn main:app --reload
-
-# 5. 新开一个终端，启动前端
-cd frontend
-npm run dev
-
-# 6. 浏览器访问 http://localhost:3000
+# 4. 一键启动（自动构建前端、启动后端、打开浏览器）
+./start.sh
 ```
 
 **Windows（CMD）：**
@@ -107,16 +99,8 @@ install.bat
 REM 3. 编辑配置文件（填入 API Key）
 notepad .env
 
-REM 4. 启动后端
-cd backend
-venv\Scripts\activate
-uvicorn main:app --reload
-
-REM 5. 新开一个终端，启动前端
-cd frontend
-npm run dev
-
-REM 6. 浏览器访问 http://localhost:3000
+REM 4. 一键启动（双击 start.bat 或在 CMD 中运行）
+start.bat
 ```
 
 **Windows（PowerShell）：**
@@ -134,17 +118,17 @@ cd embedded-interviewer
 # 3. 编辑配置文件（填入 API Key）
 notepad .env
 
-# 4. 启动后端
-cd backend
-.\venv\Scripts\Activate.ps1
-uvicorn main:app --reload
-
-# 5. 新开一个终端，启动前端
-cd frontend
-npm run dev
-
-# 6. 浏览器访问 http://localhost:3000
+# 4. 一键启动
+.\start.ps1
 ```
+
+启动脚本会自动完成以下操作：
+- 检查依赖和配置是否就绪
+- 如果前端未构建，自动执行 `npm run build`
+- 启动后端服务（端口 8000）
+- 自动打开浏览器访问 http://localhost:8000
+
+按 `Ctrl+C` 停止服务。
 
 ### 方法二：Docker（需要安装 Docker）
 
@@ -162,6 +146,27 @@ docker compose up --build
 
 # 3. 浏览器访问 http://localhost:3000
 ```
+
+### 方法三：手动启动（开发模式）
+
+如果需要前后端分别启动（如开发调试），可以手动操作：
+
+**终端 1 — 启动后端：**
+```bash
+cd backend
+source venv/bin/activate   # Linux/macOS
+# venv\Scripts\activate    # Windows CMD
+# .\venv\Scripts\Activate.ps1  # Windows PowerShell
+uvicorn main:app --reload
+```
+
+**终端 2 — 启动前端开发服务器：**
+```bash
+cd frontend
+npm run dev
+```
+
+浏览器访问 http://localhost:3000（前端 dev server 会代理 `/api` 请求到后端）。
 
 ---
 
@@ -287,7 +292,25 @@ XIAOMI_API_KEY=你的小米API密钥
 
 ### 第五步：启动服务
 
-**启动后端（终端 1）：**
+**一键启动（推荐）：**
+
+安装完成后，直接运行启动脚本即可，无需手动开两个终端：
+```bash
+# Linux / macOS
+./start.sh
+
+# Windows CMD（双击或命令行运行）
+start.bat
+
+# Windows PowerShell
+.\start.ps1
+```
+
+脚本会自动构建前端、启动后端、打开浏览器。按 `Ctrl+C` 停止。
+
+**手动启动（需要两个终端）：**
+
+启动后端（终端 1）：
 
 Linux / macOS：
 ```bash
@@ -321,7 +344,7 @@ npm run dev
 
 ### 第六步：开始使用
 
-浏览器访问 **http://localhost:3000**，你会看到面试设置页面。
+浏览器访问 **http://localhost:8000**（一键启动模式）或 **http://localhost:3000**（手动启动前端 dev server 模式），你会看到面试设置页面。
 
 ---
 
@@ -426,7 +449,11 @@ XIAOMI_MODEL=MiMo
 
 重启后端：
 
-**Linux / macOS：**
+**最简单的方式**：关闭当前运行的后端（`Ctrl+C`），然后重新运行 `./start.sh`（Linux/macOS）或 `start.bat`（Windows）。
+
+**手动重启：**
+
+Linux / macOS：
 ```bash
 # 找到并关闭旧进程
 kill $(lsof -ti:8000) 2>/dev/null
@@ -436,7 +463,9 @@ cd backend
 python3 -m uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
-**Windows（CMD / PowerShell）：**
+**Windows（手动重启）：**
+
+CMD：
 ```cmd
 REM 找到并关闭占用 8000 端口的进程
 for /f "tokens=5" %a in ('netstat -ano ^| findstr :8000 ^| findstr LISTENING') do taskkill /PID %a /F
@@ -532,6 +561,9 @@ embedded-interviewer/
 ├── install.sh                   # 一键安装脚本（Linux/macOS）
 ├── install.bat                  # 一键安装脚本（Windows CMD）
 ├── install.ps1                  # 一键安装脚本（Windows PowerShell）
+├── start.sh                     # 一键启动脚本（Linux/macOS）
+├── start.bat                    # 一键启动脚本（Windows CMD）
+├── start.ps1                    # 一键启动脚本（Windows PowerShell）
 ├── docker-compose.yml           # Docker 编排
 ├── .env.example                 # 环境变量模板
 ├── .env                         # 你的配置（git 不跟踪）
@@ -626,7 +658,10 @@ docker run -p 8000:8000 --env-file ../.env embedded-interviewer-backend
 A: 检查 .env 文件中是否正确填入了 API Key，并确认 LLM_PROVIDER 设置正确。
 
 ### Q: 前端页面空白 / 请求失败
-A: 确认后端已启动（http://localhost:8000/api/health 应返回 `{"status":"ok"}`）。前端开发服务器会自动代理 `/api` 请求到后端。
+A: 确认后端已启动（http://localhost:8000/api/health 应返回 `{"status":"ok"}`）。如果使用 `start.sh`/`start.bat` 启动，后端会同时托管前端页面，访问 http://localhost:8000 即可。如果手动启动前端 dev server，前端会自动代理 `/api` 请求到后端，访问 http://localhost:3000。
+
+### Q: start.sh / start.bat 报错 "前端未构建"
+A: 确认已安装 Node.js 18+。启动脚本会自动检测并构建前端，但需要 npm 可用。如果 npm 未安装，请先安装 Node.js。
 
 ### Q: 使用小米 MiMo 报错
 A: 确认 XIAOMI_BASE_URL 和 XIAOMI_MODEL 配置正确，且 API Key 有效。可以在 .env 中把 `LLM_PROVIDER` 改为 `xiaomi` 测试。
