@@ -1,10 +1,11 @@
 # 嵌入式面试模拟 Agent
 
-> 模拟大疆、华为、理想、小米、OPPO 等公司嵌入式岗位面试，支持白菜/SP/SSP 三档难度自适应，涵盖 Linux 驱动、RTOS、系统架构、AI 辅助编程等方向。
+> 模拟大疆、华为、乐鑫、小鹏、地平线、理想、蔚来、比亚迪、小米、OPPO、高通等公司嵌入式与具身智能岗位面试，支持白菜/SP/SSP 三档难度自适应，涵盖 Linux 驱动、RTOS、系统架构、AI 辅助编程、机器人开发、自动驾驶等方向。
 
 ![Python](https://img.shields.io/badge/Python-3.10+-blue)
 ![FastAPI](https://img.shields.io/badge/FastAPI-latest-green)
 ![React](https://img.shields.io/badge/React-19-blue)
+![Android](https://img.shields.io/badge/Android-APK-green)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
 ---
@@ -17,6 +18,7 @@
 - [详细安装步骤](#详细安装步骤)
 - [配置说明](#配置说明)
 - [如何切换模型和 API](#如何切换模型和-api)
+- [安卓 App 使用说明](#安卓-app-使用说明)
 - [使用指南](#使用指南)
 - [项目结构](#项目结构)
 - [API 接口文档](#api-接口文档)
@@ -31,8 +33,16 @@
 - **三档难度自适应**：白菜（基础岗）/ SP（核心研发）/ SSP（高级架构），根据回答质量自动升降档
 - **七大考察领域**：C/C++ 语言、操作系统、网络通信、硬件驱动、系统设计、工具链、AI 辅助编程
 - **项目关联提问**：从简历中的具体项目出发追问，不是八股文背诵
-- **公司特色题**：大疆实时性、华为底层原理、车企功能安全、OPPO/小米产品场景
+- **公司特色题**：大疆实时性、华为底层原理、车企功能安全、乐鑫 IoT 低功耗、小鹏/地平线自动驾驶、高通 BSP、OPPO/小米产品场景
 - **流式对话**：面试官逐字输出，真实模拟面试节奏
+- **语音输入**：支持语音输入回答（需浏览器支持 Web Speech API）
+- **深度追问**：每个知识点至少追问 3-5 轮，从表面方案到底层原理
+
+### 支持公司
+| 方向 | 公司 |
+|------|------|
+| 嵌入式 | 大疆、华为、乐鑫（Espressif）、小鹏、地平线（Horizon）、高通（Qualcomm）、理想、蔚来、比亚迪、黑芝麻、华为车BU、OPPO、小米 |
+| 具身智能 | 大疆、优必选、宇树、特斯拉/Figure、小鹏、地平线、乐鑫、银河通用、智元机器人、星动纪元、车企自动驾驶 |
 
 ### 多模型支持
 | 模型 | 说明 | 是否免费 |
@@ -63,6 +73,12 @@
 | Node.js | 18+ | 前端构建环境 |
 | npm | 9+ | 通常随 Node.js 安装 |
 | 操作系统 | Windows/macOS/Linux | 均支持 |
+
+**安卓 App 额外要求**（仅构建 APK 时需要）：
+| 组件 | 说明 |
+|------|------|
+| Java JDK 17+ | Android 构建需要 |
+| Android SDK | Android 构建需要 |
 
 ---
 
@@ -514,24 +530,126 @@ curl https://xxx.com/v1/chat/completions \
 
 ---
 
+## 安卓 App 使用说明
+
+本项目支持通过 [Capacitor](https://capacitorjs.com/) 将 Web 前端封装为 Android 原生 APK。
+
+### 前置要求
+
+| 组件 | 版本要求 | 安装说明 |
+|------|---------|---------|
+| Java JDK | 17+ | https://adoptium.net/ |
+| Android SDK | API 34+ | 通过 Android Studio 或 command-line tools 安装 |
+| Android 构建工具 | 对应版本 | `sdkmanager "build-tools;34.0.0"` |
+
+### 快速构建 APK
+
+**Windows 一键构建（推荐）：**
+
+```cmd
+REM 1. 首次使用，安装构建工具（Java + Android SDK）
+setup-android-sdk.bat
+
+REM 2. 构建 APK
+build-apk.bat
+```
+
+`setup-android-sdk.bat` 会自动下载安装：
+- Java JDK 17（到 `D:\Java\`）
+- Android SDK 命令行工具 + platform-tools + Android 34（到 `D:\Android\`）
+
+`build-apk.bat` 会自动构建前端、同步到 Android 项目、编译 APK。
+
+**手动构建：**
+
+```bash
+# 1. 确保前端已构建
+cd frontend
+npm run build
+
+# 2. 同步到 Android 项目
+npx cap sync
+
+# 3. 构建 APK（需要 Java 和 Android SDK）
+cd android
+./gradlew assembleDebug
+```
+
+生成的 APK 位于：`frontend/android/app/build/outputs/apk/debug/app-debug.apk`
+
+### 在 Android Studio 中打开（推荐）
+
+```bash
+cd frontend
+npx cap open android
+```
+
+这会在 Android Studio 中打开项目，你可以直接点击 Run 按钮在模拟器或真机上运行。
+
+### 配置后端地址
+
+APK 安装后，需要能访问到后端服务。有两种方式：
+
+**方式一：在同一局域网运行后端**
+
+1. 在电脑上启动后端（确保使用 `--host 0.0.0.0`）
+2. 在手机浏览器访问 `http://电脑IP:8000`
+3. 或在 `capacitor.config.json` 中配置 `server.url`：
+
+```json
+{
+  "server": {
+    "url": "http://192.168.1.100:8000",
+    "cleartext": true
+  }
+}
+```
+
+然后重新 `npx cap sync` 并构建。
+
+**方式二：使用端口转发**
+
+如果手机通过 USB 连接电脑，可以使用 ADB 端口转发：
+
+```bash
+adb reverse tcp:8000 tcp:8000
+```
+
+这样手机上的 App 访问 `localhost:8000` 就会转发到电脑的后端。
+
+### PWA 方式（无需构建 APK）
+
+如果不想安装 Android 开发工具，也可以直接通过 PWA 方式使用：
+
+1. 在电脑上启动后端（`--host 0.0.0.0`）
+2. 在手机 Chrome 浏览器访问 `http://电脑IP:8000`
+3. 点击 Chrome 菜单 → "添加到主屏幕"
+4. App 图标会出现在手机桌面，点击即可全屏使用
+
+---
+
 ## 使用指南
 
 ### 开始面试
 
-1. **选择简历输入方式**：
+1. **选择面试方向**：
+   - **嵌入式**：Linux驱动 / RTOS / 系统架构
+   - **具身智能**：ROS / SLAM / 运动控制
+
+2. **选择简历输入方式**：
    - **粘贴文本**：将简历内容复制粘贴到文本框
    - **上传文件**：点击上传 PDF 或 DOCX 简历文件
    - **飞书链接**：粘贴飞书云文档链接
    - **不提供**：直接开始，面试官会通过对话了解你的背景
 
-2. **选择面试档位**：
+3. **选择面试档位**：
    - **白菜**：基础岗，考察基本功
    - **SP**：核心研发岗，考察原理深度和工程能力（推荐）
    - **SSP**：高级架构岗，考察系统设计和底层原理
 
-3. **选择 LLM 模型**：从已配置的模型中选择
+4. **选择 LLM 模型**：从已配置的模型中选择
 
-4. **点击"开始面试"**
+5. **点击"开始面试"**
 
 ### 面试过程中
 
@@ -540,6 +658,7 @@ curl https://xxx.com/v1/chat/completions \
 - 回答完后点"发送"或按 Enter
 - 可以随时输入"结束"来终止面试
 - 面试过程中面试官会根据你的回答自动调整难度
+- 支持语音输入（点击麦克风按钮）
 
 ### 生成报告
 
@@ -551,6 +670,12 @@ curl https://xxx.com/v1/chat/completions \
    - 知识盲区补充（附学习路径）
    - 简历优化建议
 3. 可以下载 Markdown 文件或导出到飞书文档
+
+### 面试历史
+
+- 所有面试记录自动保存，可在"历史"中查看
+- 支持回看完整对话和报告
+- 支持删除单条历史记录
 
 ---
 
@@ -564,6 +689,8 @@ embedded-interviewer/
 ├── start.sh                     # 一键启动脚本（Linux/macOS）
 ├── start.bat                    # 一键启动脚本（Windows CMD）
 ├── start.ps1                    # 一键启动脚本（Windows PowerShell）
+├── setup-android-sdk.bat        # 安装安卓构建工具（Windows）
+├── build-apk.bat                # 一键构建 APK（Windows）
 ├── docker-compose.yml           # Docker 编排
 ├── .env.example                 # 环境变量模板
 ├── .env                         # 你的配置（git 不跟踪）
@@ -593,19 +720,29 @@ embedded-interviewer/
 │   ├── Dockerfile
 │   ├── nginx.conf               # 生产环境 Nginx 配置
 │   ├── package.json
+│   ├── capacitor.config.json    # Capacitor 配置（安卓打包）
+│   ├── android/                 # Android 项目（Capacitor 自动生成）
+│   ├── public/
+│   │   ├── manifest.json        # PWA 清单
+│   │   ├── sw.js                # Service Worker
+│   │   ├── icon-192.svg         # App 图标（小）
+│   │   └── icon-512.svg         # App 图标（大）
 │   └── src/
 │       ├── App.tsx              # 主应用
-│       ├── index.css            # 全局样式
+│       ├── index.css            # 全局样式（含移动端适配）
 │       ├── components/          # UI 组件
 │       │   ├── Setup/           # 设置面板
 │       │   ├── Chat/            # 聊天界面
-│       │   └── Report/          # 报告面板
+│       │   ├── Report/          # 报告面板
+│       │   ├── Settings/        # 系统设置
+│       │   └── History/         # 面试历史
 │       ├── hooks/               # React Hooks
-│       ├── api/                 # API 调用
+│       ├── api/                 # API 调用（支持 Capacitor 环境）
 │       └── types/               # TypeScript 类型
 │
 └── data/                        # 运行时数据
-    └── resumes/                 # 简历缓存（自动生成）
+    ├── resumes/                 # 简历缓存（自动生成）
+    └── sessions/                # 面试记录（自动生成）
 ```
 
 ---
@@ -616,14 +753,20 @@ embedded-interviewer/
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
+| GET | `/api/health` | 健康检查 |
 | GET | `/api/interview/providers` | 列出可用的 LLM provider |
 | POST | `/api/interview/start` | 启动面试（multipart/form-data） |
 | POST | `/api/interview/chat` | 发送回答（SSE 流式响应） |
 | POST | `/api/interview/end` | 结束面试 |
 | GET | `/api/interview/sessions/{id}` | 获取会话信息 |
+| GET | `/api/interview/history` | 获取面试历史列表 |
+| GET | `/api/interview/history/{id}` | 获取面试详情 |
+| DELETE | `/api/interview/history/{id}` | 删除面试记录 |
 | POST | `/api/report/generate/{id}` | 生成面试报告 |
 | GET | `/api/report/export-file/{id}` | 下载报告文件 |
 | POST | `/api/report/export-feishu` | 导出到飞书文档 |
+| GET | `/api/config` | 获取配置 |
+| POST | `/api/config` | 更新配置 |
 
 ---
 
@@ -694,6 +837,14 @@ where python
 1. **安装真正的 Python**（推荐）：从 https://www.python.org/downloads/ 下载，安装时勾选 "Add Python to PATH"
 2. **关闭 App Execution Alias**：Windows 设置 -> 应用 -> 高级应用设置 -> 应用执行别名 -> 关闭 python.exe 和 python3.exe
 
+### Q: 如何在安卓手机上使用
+A: 有两种方式：
+1. **PWA 方式**（最简单）：在手机 Chrome 浏览器访问后端地址 → 菜单 → "添加到主屏幕"
+2. **APK 方式**（体验更好）：按照"安卓 App 使用说明"章节构建 APK 并安装
+
+### Q: APK 安装后无法连接后端
+A: 确认手机和电脑在同一局域网，且后端使用 `--host 0.0.0.0` 启动。在手机浏览器先访问 `http://电脑IP:8000/api/health` 测试连通性。
+
 ---
 
 ## 技术栈
@@ -704,6 +855,8 @@ where python
 | 前端框架 | React + TypeScript | 组件化 UI 开发 |
 | 样式 | Tailwind CSS v4 | 原子化 CSS |
 | 构建工具 | Vite | 快速前端构建 |
+| 移动端 | Capacitor | Web 转原生 Android/iOS |
+| PWA | Service Worker + Manifest | 渐进式 Web 应用 |
 | LLM SDK | anthropic / openai | 官方 Python SDK |
 | 文件解析 | pdfplumber / python-docx | PDF 和 DOCX 解析 |
 | 飞书集成 | lark-oapi | 飞书开放平台 SDK |

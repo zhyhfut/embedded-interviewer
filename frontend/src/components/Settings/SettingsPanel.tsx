@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { getApiBase } from '../../api/client';
 
 interface ConfigField {
   value: string;
@@ -22,12 +23,11 @@ export default function SettingsPanel({ onClose }: Props) {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    fetch('/api/config')
+    fetch(`${getApiBase()}/config`)
       .then((r) => r.json())
       .then((data) => {
         setConfig(data.config || {});
         setLoaded(true);
-        // 设置当前激活的 provider tab
         const provider = data.config?.LLM_PROVIDER?.value;
         if (provider) setActiveProvider(provider);
       })
@@ -41,7 +41,7 @@ export default function SettingsPanel({ onClose }: Props) {
     setSaving(true);
     setMessage('');
     try {
-      const res = await fetch('/api/config', {
+      const res = await fetch(`${getApiBase()}/config`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ config: edited }),
@@ -50,7 +50,6 @@ export default function SettingsPanel({ onClose }: Props) {
       if (data.status === 'ok') {
         setMessage('配置已保存！更改 API Key 后建议重启后端。');
         setEdited({});
-        // 重新加载
         const reload = await fetch('/api/config');
         const reloadData = await reload.json();
         setConfig(reloadData.config || {});
@@ -72,7 +71,7 @@ export default function SettingsPanel({ onClose }: Props) {
     if (key in edited) return edited[key];
     const field = config[key];
     if (!field) return '';
-    if (field.type === 'password' && field.is_set) return ''; // 密码类不回显
+    if (field.type === 'password' && field.is_set) return '';
     return field.value;
   };
 
@@ -93,35 +92,35 @@ export default function SettingsPanel({ onClose }: Props) {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto p-6">
+    <div className="flex-1 overflow-y-auto p-3 sm:p-6 safe-area-bottom">
       <div className="max-w-3xl mx-auto">
         {/* 标题栏 */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-4 sm:mb-6">
           <div>
-            <h2 className="text-xl font-bold">设置</h2>
-            <p className="text-sm text-[var(--text-secondary)] mt-1">
-              配置 LLM API Key 和其他参数，修改后保存即可生效
+            <h2 className="text-lg sm:text-xl font-bold">设置</h2>
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1">
+              配置 LLM API Key 和其他参数
             </p>
           </div>
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-[var(--bg-tertiary)] hover:bg-[var(--border)] rounded-lg text-sm transition-colors"
+            className="px-3 sm:px-4 py-2 bg-[var(--bg-tertiary)] hover:bg-[var(--border)] rounded-lg text-xs sm:text-sm transition-colors"
           >
             返回
           </button>
         </div>
 
         {/* 默认 Provider 选择 */}
-        <div className="bg-[var(--bg-secondary)] rounded-xl p-5 mb-4 border border-[var(--border)]">
+        <div className="bg-[var(--bg-secondary)] rounded-xl p-4 sm:p-5 mb-4 border border-[var(--border)]">
           <label className="block text-sm font-medium mb-3 text-[var(--text-secondary)]">
             默认 LLM Provider
           </label>
-          <div className="grid grid-cols-5 gap-2">
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5 sm:gap-2">
             {Object.entries(providerGroups).map(([key, group]) => (
               <button
                 key={key}
                 onClick={() => handleChange('LLM_PROVIDER', key)}
-                className={`py-2 px-2 rounded-lg text-xs font-medium transition-all ${
+                className={`py-2 px-1.5 sm:px-2 rounded-lg text-xs font-medium transition-all ${
                   (edited['LLM_PROVIDER'] ?? config['LLM_PROVIDER']?.value) === key
                     ? 'bg-[var(--accent)] text-white ring-2 ring-[var(--accent)]/30'
                     : 'bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:text-white'
@@ -139,24 +138,24 @@ export default function SettingsPanel({ onClose }: Props) {
         {/* Provider 配置区（Tab 式） */}
         <div className="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border)] overflow-hidden mb-4">
           {/* Tab 头 */}
-          <div className="flex border-b border-[var(--border)]">
+          <div className="flex border-b border-[var(--border)] overflow-x-auto">
             {Object.entries(providerGroups).map(([key, group]) => (
               <button
                 key={key}
                 onClick={() => setActiveProvider(key)}
-                className={`flex-1 py-3 text-xs font-medium transition-colors ${
+                className={`flex-1 min-w-0 py-2.5 sm:py-3 text-xs font-medium transition-colors whitespace-nowrap ${
                   activeProvider === key
                     ? 'bg-[var(--bg-tertiary)] text-white border-b-2 border-[var(--accent)]'
                     : 'text-[var(--text-secondary)] hover:text-white'
                 }`}
               >
-                {group.icon} {group.label}
+                {group.icon} <span className="hidden sm:inline">{group.label}</span>
               </button>
             ))}
           </div>
 
           {/* Tab 内容 */}
-          <div className="p-5 space-y-4 fade-in">
+          <div className="p-4 sm:p-5 space-y-3 sm:space-y-4 fade-in">
             {providerGroups[activeProvider]?.fields.map((key) => {
               const field = config[key];
               if (!field) return null;
@@ -201,7 +200,7 @@ export default function SettingsPanel({ onClose }: Props) {
         </div>
 
         {/* 飞书配置 */}
-        <div className="bg-[var(--bg-secondary)] rounded-xl p-5 border border-[var(--border)] mb-4">
+        <div className="bg-[var(--bg-secondary)] rounded-xl p-4 sm:p-5 border border-[var(--border)] mb-4">
           <h3 className="text-sm font-medium mb-3 text-[var(--text-secondary)]">
             飞书集成（可选）
           </h3>
@@ -231,11 +230,11 @@ export default function SettingsPanel({ onClose }: Props) {
         </div>
 
         {/* 操作按钮 */}
-        <div className="flex gap-3 items-center">
+        <div className="flex gap-3 items-center flex-wrap">
           <button
             onClick={handleSave}
             disabled={saving || Object.keys(edited).length === 0}
-            className="px-6 py-2.5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white rounded-xl font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
+            className="px-5 sm:px-6 py-2.5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white rounded-xl font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {saving && (
               <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
@@ -246,7 +245,7 @@ export default function SettingsPanel({ onClose }: Props) {
             {saving ? '保存中...' : '保存配置'}
           </button>
           {message && (
-            <span className={`text-sm ${message.includes('成功') || message.includes('已保存') ? 'text-green-400' : 'text-yellow-400'}`}>
+            <span className={`text-xs sm:text-sm ${message.includes('成功') || message.includes('已保存') ? 'text-green-400' : 'text-yellow-400'}`}>
               {message}
             </span>
           )}

@@ -24,27 +24,27 @@ export default function ReportPanel({ report, sessionId, onReset }: Props) {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-6">
+    <div className="flex-1 overflow-y-auto p-3 sm:p-6 safe-area-bottom">
       <div className="max-w-4xl mx-auto">
         {/* 操作栏 */}
-        <div className="flex gap-3 mb-6 justify-end">
+        <div className="flex gap-2 sm:gap-3 mb-4 sm:mb-6 justify-end flex-wrap">
           <a
             href={getReportDownloadUrl(sessionId)}
             download
-            className="px-4 py-2 bg-[var(--bg-tertiary)] hover:bg-[var(--border)] text-sm rounded-lg transition-colors"
+            className="px-3 sm:px-4 py-2 bg-[var(--bg-tertiary)] hover:bg-[var(--border)] text-xs sm:text-sm rounded-lg transition-colors"
           >
             下载 Markdown
           </a>
           <button
             onClick={handleExportFeishu}
             disabled={isExporting}
-            className="px-4 py-2 bg-[var(--bg-tertiary)] hover:bg-[var(--border)] text-sm rounded-lg transition-colors disabled:opacity-50"
+            className="px-3 sm:px-4 py-2 bg-[var(--bg-tertiary)] hover:bg-[var(--border)] text-xs sm:text-sm rounded-lg transition-colors disabled:opacity-50"
           >
             {isExporting ? '导出中...' : '导出到飞书'}
           </button>
           <button
             onClick={onReset}
-            className="px-4 py-2 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-sm rounded-lg transition-colors"
+            className="px-3 sm:px-4 py-2 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-xs sm:text-sm rounded-lg transition-colors"
           >
             重新面试
           </button>
@@ -57,7 +57,7 @@ export default function ReportPanel({ report, sessionId, onReset }: Props) {
               href={feishuUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-400 hover:underline ml-1"
+              className="text-blue-400 hover:underline ml-1 break-all"
             >
               {feishuUrl}
             </a>
@@ -65,9 +65,9 @@ export default function ReportPanel({ report, sessionId, onReset }: Props) {
         )}
 
         {/* 报告内容 */}
-        <div className="bg-[var(--bg-secondary)] rounded-2xl p-8 border border-[var(--border)]">
+        <div className="bg-[var(--bg-secondary)] rounded-2xl p-4 sm:p-8 border border-[var(--border)]">
           <div className="prose prose-invert prose-sm max-w-none">
-            <pre className="whitespace-pre-wrap text-sm leading-relaxed font-[inherit] bg-transparent p-0 m-0">
+            <pre className="whitespace-pre-wrap text-xs sm:text-sm leading-relaxed font-[inherit] bg-transparent p-0 m-0">
               {report}
             </pre>
           </div>

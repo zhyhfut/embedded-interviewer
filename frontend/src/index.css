@@ -13,6 +13,8 @@
   --candidate-bg: #374151;
   --success: #22c55e;
   --warning: #f59e0b;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 body {
@@ -20,12 +22,25 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: var(--bg-primary);
   color: var(--text-primary);
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
 }
 
 #root {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
+}
+
+/* 安全区域适配 */
+@supports (padding: env(safe-area-inset-top)) {
+  .safe-area-top {
+    padding-top: var(--safe-top);
+  }
+  .safe-area-bottom {
+    padding-bottom: var(--safe-bottom);
+  }
 }
 
 /* 思考动画 */
@@ -107,4 +122,34 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-secondary);
+}
+
+/* 移动端优化 */
+@media (max-width: 640px) {
+  /* 触摸目标最小 44px */
+  button, a, input, textarea, select {
+    min-height: 44px;
+  }
+
+  /* 防止 iOS 输入框缩放 */
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+
+  /* 消息气泡在移动端更宽 */
+  .message-bubble-mobile {
+    max-width: 92% !important;
+  }
+
+  /* 禁用 hover 效果（触摸设备） */
+  .hover\:bg-\[var\(--bg-tertiary\)\]:hover {
+    background-color: var(--bg-tertiary);
+  }
+}
+
+/* 横屏模式优化 */
+@media (orientation: landscape) and (max-height: 500px) {
+  .chat-input-area {
+    padding: 8px 16px;
+  }
 }

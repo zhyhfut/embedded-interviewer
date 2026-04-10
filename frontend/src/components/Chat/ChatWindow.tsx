@@ -76,6 +76,20 @@ export default function ChatWindow({
     }
   }, [input]);
 
+  // 移动端：键盘弹出时滚动到底部
+  useEffect(() => {
+    const handleResize = () => {
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    };
+
+    if (typeof window !== 'undefined' && 'visualViewport' in window) {
+      window.visualViewport?.addEventListener('resize', handleResize);
+      return () => window.visualViewport?.removeEventListener('resize', handleResize);
+    }
+  }, []);
+
   const handleSend = () => {
     const trimmed = input.trim();
     if (!trimmed || isLoading) return;
@@ -151,7 +165,7 @@ export default function ChatWindow({
   return (
     <div className="flex flex-col flex-1 max-w-4xl mx-auto w-full">
       {/* 消息区域 */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4">
         {messages.map((msg, idx) => (
           <MessageBubble
             key={idx}
@@ -162,7 +176,7 @@ export default function ChatWindow({
 
         {isThinking && (
           <div className="flex justify-start bubble-in">
-            <div className="bg-[var(--interviewer-bg)] rounded-2xl rounded-bl-md px-5 py-4 max-w-[200px]">
+            <div className="bg-[var(--interviewer-bg)] rounded-2xl rounded-bl-md px-4 sm:px-5 py-3 sm:py-4 max-w-[200px]">
               <div className="flex items-center gap-2">
                 <div className="flex gap-1">
                   <span className="w-2 h-2 bg-blue-400/60 rounded-full animate-bounce" />
@@ -179,13 +193,13 @@ export default function ChatWindow({
       </div>
 
       {/* 输入区域 */}
-      <div className="border-t border-[var(--border)] p-4 bg-[var(--bg-primary)]">
+      <div className="border-t border-[var(--border)] p-3 sm:p-4 bg-[var(--bg-primary)] safe-area-bottom chat-input-area">
         {isFinished ? (
-          <div className="flex gap-3 justify-center fade-in">
+          <div className="flex gap-2 sm:gap-3 justify-center fade-in flex-wrap">
             <button
               onClick={onGenerateReport}
               disabled={isGeneratingReport}
-              className="px-6 py-2.5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white rounded-lg font-medium transition-all disabled:opacity-50 flex items-center gap-2"
+              className="px-5 sm:px-6 py-2.5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white rounded-lg font-medium transition-all disabled:opacity-50 flex items-center gap-2"
             >
               {isGeneratingReport && (
                 <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
@@ -197,23 +211,23 @@ export default function ChatWindow({
             </button>
             <button
               onClick={onReset}
-              className="px-6 py-2.5 bg-[var(--bg-tertiary)] hover:bg-[var(--border)] text-[var(--text-primary)] rounded-lg font-medium transition-colors"
+              className="px-5 sm:px-6 py-2.5 bg-[var(--bg-tertiary)] hover:bg-[var(--border)] text-[var(--text-primary)] rounded-lg font-medium transition-colors"
             >
               重新面试
             </button>
           </div>
         ) : (
-          <div className="flex gap-3 items-end">
+          <div className="flex gap-2 sm:gap-3 items-end">
             <div className="flex-1 relative">
               <textarea
                 ref={textareaRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder={isRecording ? "正在录音...点击麦克风停止" : "输入你的回答... (Shift+Enter 换行)"}
+                placeholder={isRecording ? "正在录音...点击麦克风停止" : "输入你的回答..."}
                 rows={1}
                 disabled={isLoading}
-                className={`w-full bg-[var(--bg-tertiary)] border rounded-xl px-4 py-3 pr-12 text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] resize-none focus:outline-none focus:ring-1 focus:ring-[var(--accent)]/30 disabled:opacity-50 transition-all ${
+                className={`w-full bg-[var(--bg-tertiary)] border rounded-xl px-4 py-3 pr-12 text-base text-[var(--text-primary)] placeholder-[var(--text-secondary)] resize-none focus:outline-none focus:ring-1 focus:ring-[var(--accent)]/30 disabled:opacity-50 transition-all ${
                   isRecording ? 'border-red-500/50 focus:border-red-500' : 'border-[var(--border)] focus:border-[var(--accent)]'
                 }`}
                 style={{ minHeight: '44px', maxHeight: '150px' }}
@@ -239,19 +253,16 @@ export default function ChatWindow({
             <button
               onClick={handleSend}
               disabled={isLoading || !input.trim()}
-              className="px-5 py-3 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white rounded-xl font-medium transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-2 shrink-0"
+              className="px-4 sm:px-5 py-3 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white rounded-xl font-medium transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1.5 sm:gap-2 shrink-0"
             >
               {isLoading ? (
-                <>
-                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                  思考中
-                </>
+                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
               ) : (
                 <>
-                  发送
+                  <span className="hidden sm:inline">发送</span>
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                   </svg>

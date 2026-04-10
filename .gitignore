@@ -10,6 +10,13 @@ venv/
 node_modules/
 frontend/dist/
 
+# Android build artifacts
+frontend/android/app/build/
+frontend/android/.gradle/
+frontend/android/app/src/main/assets/public/
+frontend/android/app/src/main/assets/capacitor.config.json
+frontend/android/capacitor-cordova-android-plugins/
+
 # 环境变量和数据
 .env
 data/

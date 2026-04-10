@@ -13,13 +13,13 @@ export default function MessageBubble({ message, isStreaming }: Props) {
   return (
     <div className={`flex ${isInterviewer ? 'justify-start' : 'justify-end'} bubble-in`}>
       <div
-        className={`max-w-[85%] rounded-2xl px-4 py-3 ${
+        className={`max-w-[92%] sm:max-w-[85%] rounded-2xl px-3 sm:px-4 py-2.5 sm:py-3 message-bubble-mobile ${
           isInterviewer
             ? 'bg-[var(--interviewer-bg)] rounded-bl-md'
             : 'bg-[var(--candidate-bg)] rounded-br-md'
         }`}
       >
-        <div className="text-xs font-medium mb-1.5 opacity-60 flex items-center gap-1.5">
+        <div className="text-xs font-medium mb-1 sm:mb-1.5 opacity-60 flex items-center gap-1.5">
           {isInterviewer && (
             <span className="w-5 h-5 rounded-full bg-blue-600/30 flex items-center justify-center text-[10px]">
               AI

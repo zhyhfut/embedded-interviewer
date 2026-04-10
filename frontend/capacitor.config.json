@@ -1,0 +1,15 @@
+{
+  "appId": "com.embedded.interviewer",
+  "appName": "嵌入式面试模拟",
+  "webDir": "dist",
+  "android": {
+    "allowMixedContent": true,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": true
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0
+    }
+  }
+}

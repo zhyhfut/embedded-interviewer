@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { Message } from '../../types';
+import { getApiBase } from '../../api/client';
 
 interface HistoryData {
   session_id: string;
@@ -25,7 +26,7 @@ export default function HistoryDetail({ sessionId, onBack }: Props) {
   const [showReport, setShowReport] = useState(false);
 
   useEffect(() => {
-    fetch(`/api/interview/history/${sessionId}`)
+    fetch(`${getApiBase()}/interview/history/${sessionId}`)
       .then((r) => r.json())
       .then((d) => {
         setData(d);
@@ -65,9 +66,9 @@ export default function HistoryDetail({ sessionId, onBack }: Props) {
   return (
     <div className="flex-1 overflow-y-auto">
       {/* 顶部信息栏 */}
-      <div className="sticky top-0 z-10 bg-[var(--bg-primary)]/95 backdrop-blur-sm border-b border-[var(--border)] px-6 py-4">
+      <div className="sticky top-0 z-10 bg-[var(--bg-primary)]/95 backdrop-blur-sm border-b border-[var(--border)] px-3 sm:px-6 py-3 sm:py-4 safe-area-top">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={onBack}
               className="p-1.5 rounded-lg hover:bg-[var(--bg-tertiary)] transition-colors"
@@ -77,7 +78,7 @@ export default function HistoryDetail({ sessionId, onBack }: Props) {
               </svg>
             </button>
             <div>
-              <div className="text-sm font-medium">
+              <div className="text-xs sm:text-sm font-medium">
                 {directionLabel(data.direction)} · {data.difficulty} · {data.question_count} 题
               </div>
               <div className="text-xs text-[var(--text-secondary)]">
@@ -86,25 +87,25 @@ export default function HistoryDetail({ sessionId, onBack }: Props) {
             </div>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-1.5 sm:gap-2">
             <button
               onClick={() => setShowReport(!showReport)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+              className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 showReport
                   ? 'bg-[var(--accent)] text-white'
                   : 'bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:text-white'
               }`}
               disabled={!data.report_content}
             >
-              {data.report_content ? (showReport ? '查看对话' : '查看报告') : '无报告'}
+              {data.report_content ? (showReport ? '对话' : '报告') : '无报告'}
             </button>
             {data.report_content && (
               <a
-                href={`/api/report/export-file/${sessionId}`}
+                href={`${getApiBase()}/report/export-file/${sessionId}`}
                 download
-                className="px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:text-white transition-colors"
+                className="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:text-white transition-colors"
               >
-                下载报告
+                下载
               </a>
             )}
           </div>
@@ -123,28 +124,28 @@ export default function HistoryDetail({ sessionId, onBack }: Props) {
       </div>
 
       {/* 内容区 */}
-      <div className="max-w-4xl mx-auto p-6">
+      <div className="max-w-4xl mx-auto p-3 sm:p-6 safe-area-bottom">
         {showReport && data.report_content ? (
-          <div className="bg-[var(--bg-secondary)] rounded-xl p-6 border border-[var(--border)] fade-in">
-            <pre className="whitespace-pre-wrap text-sm leading-relaxed font-[inherit] bg-transparent p-0 m-0">
+          <div className="bg-[var(--bg-secondary)] rounded-xl p-4 sm:p-6 border border-[var(--border)] fade-in">
+            <pre className="whitespace-pre-wrap text-xs sm:text-sm leading-relaxed font-[inherit] bg-transparent p-0 m-0">
               {data.report_content}
             </pre>
           </div>
         ) : (
-          <div className="space-y-4 fade-in">
+          <div className="space-y-3 sm:space-y-4 fade-in">
             {data.messages.map((msg, idx) => (
               <div
                 key={idx}
                 className={`flex ${msg.role === 'interviewer' ? 'justify-start' : 'justify-end'}`}
               >
                 <div
-                  className={`max-w-[85%] rounded-2xl px-4 py-3 ${
+                  className={`max-w-[92%] sm:max-w-[85%] rounded-2xl px-3 sm:px-4 py-2.5 sm:py-3 ${
                     msg.role === 'interviewer'
                       ? 'bg-[var(--interviewer-bg)] rounded-bl-md'
                       : 'bg-[var(--candidate-bg)] rounded-br-md'
                   }`}
                 >
-                  <div className="text-xs font-medium mb-1.5 opacity-60 flex items-center gap-1.5">
+                  <div className="text-xs font-medium mb-1 sm:mb-1.5 opacity-60 flex items-center gap-1.5">
                     {msg.role === 'interviewer' && (
                       <span className="w-5 h-5 rounded-full bg-blue-600/30 flex items-center justify-center text-[10px]">
                         AI

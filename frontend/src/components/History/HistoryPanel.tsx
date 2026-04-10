@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { getApiBase } from '../../api/client';
 
 interface HistoryItem {
   session_id: string;
@@ -23,7 +24,7 @@ export default function HistoryPanel({ onSelect, onClose }: Props) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/interview/history')
+    fetch(`${getApiBase()}/interview/history`)
       .then((r) => r.json())
       .then((data) => {
         setHistory(data.sessions || []);
@@ -35,7 +36,7 @@ export default function HistoryPanel({ onSelect, onClose }: Props) {
   const handleDelete = async (sessionId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!confirm('确定删除这条面试记录？')) return;
-    await fetch(`/api/interview/history/${sessionId}`, { method: 'DELETE' });
+    await fetch(`${getApiBase()}/interview/history/${sessionId}`, { method: 'DELETE' });
     setHistory((prev) => prev.filter((s) => s.session_id !== sessionId));
   };
 
@@ -56,19 +57,19 @@ export default function HistoryPanel({ onSelect, onClose }: Props) {
   const directionIcon = (d: string) => d === 'embedded' ? '⚙️' : '🤖';
 
   return (
-    <div className="flex-1 overflow-y-auto p-6">
+    <div className="flex-1 overflow-y-auto p-3 sm:p-6 safe-area-bottom">
       <div className="max-w-3xl mx-auto">
         {/* 标题 */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-4 sm:mb-6">
           <div>
-            <h2 className="text-xl font-bold">面试历史</h2>
-            <p className="text-sm text-[var(--text-secondary)] mt-1">
+            <h2 className="text-lg sm:text-xl font-bold">面试历史</h2>
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1">
               {history.length > 0 ? `共 ${history.length} 条记录` : '暂无历史记录'}
             </p>
           </div>
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-[var(--bg-tertiary)] hover:bg-[var(--border)] rounded-lg text-sm transition-colors"
+            className="px-3 sm:px-4 py-2 bg-[var(--bg-tertiary)] hover:bg-[var(--border)] rounded-lg text-xs sm:text-sm transition-colors"
           >
             返回
           </button>
@@ -85,17 +86,17 @@ export default function HistoryPanel({ onSelect, onClose }: Props) {
             <p className="text-sm mt-1 opacity-60">完成一次面试后，记录会自动保存在这里</p>
           </div>
         ) : (
-          <div className="space-y-3 fade-in">
+          <div className="space-y-2.5 sm:space-y-3 fade-in">
             {history.map((item) => (
               <div
                 key={item.session_id}
                 onClick={() => onSelect(item.session_id)}
-                className="bg-[var(--bg-secondary)] rounded-xl p-4 border border-[var(--border)] hover:border-[var(--accent)]/50 cursor-pointer transition-all hover:bg-[var(--bg-secondary)]/80 group"
+                className="bg-[var(--bg-secondary)] rounded-xl p-3 sm:p-4 border border-[var(--border)] hover:border-[var(--accent)]/50 cursor-pointer transition-all hover:bg-[var(--bg-secondary)]/80 group active:bg-[var(--bg-tertiary)]"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
                     {/* 头部：方向 + 难度 + 日期 */}
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2 flex-wrap">
                       <span className="text-base">{directionIcon(item.direction)}</span>
                       <span className="text-sm font-medium">{directionLabel(item.direction)}</span>
                       <span className={`text-xs px-2 py-0.5 rounded-full ${
@@ -107,31 +108,31 @@ export default function HistoryPanel({ onSelect, onClose }: Props) {
                       </span>
                       {item.has_report && (
                         <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-300">
-                          已生成报告
+                          已报告
                         </span>
                       )}
-                      <span className="text-xs text-[var(--text-secondary)] ml-auto">
+                      <span className="text-xs text-[var(--text-secondary)] ml-auto shrink-0">
                         {formatDate(item.created_at)}
                       </span>
                     </div>
 
                     {/* 预览 */}
-                    <p className="text-sm text-[var(--text-secondary)] truncate">
+                    <p className="text-xs sm:text-sm text-[var(--text-secondary)] truncate">
                       {item.preview}
                     </p>
 
                     {/* 底部统计 */}
-                    <div className="flex items-center gap-3 mt-2 text-xs text-[var(--text-secondary)]/70">
+                    <div className="flex items-center gap-2 sm:gap-3 mt-1.5 sm:mt-2 text-xs text-[var(--text-secondary)]/70">
                       <span>{item.question_count} 题</span>
-                      <span>{item.topics_covered.length} 个领域</span>
-                      <span>{item.message_count} 条对话</span>
+                      <span>{item.topics_covered.length} 领域</span>
+                      <span>{item.message_count} 对话</span>
                     </div>
                   </div>
 
                   {/* 删除按钮 */}
                   <button
                     onClick={(e) => handleDelete(item.session_id, e)}
-                    className="opacity-0 group-hover:opacity-100 ml-3 p-1.5 rounded-lg hover:bg-red-500/20 text-[var(--text-secondary)] hover:text-red-400 transition-all"
+                    className="opacity-0 group-hover:opacity-100 ml-2 sm:ml-3 p-1.5 rounded-lg hover:bg-red-500/20 text-[var(--text-secondary)] hover:text-red-400 transition-all"
                     title="删除"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

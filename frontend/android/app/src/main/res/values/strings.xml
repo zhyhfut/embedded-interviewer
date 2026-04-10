@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">嵌入式面试模拟</string>
+    <string name="title_activity_main">嵌入式面试模拟</string>
+    <string name="package_name">com.embedded.interviewer</string>
+    <string name="custom_url_scheme">com.embedded.interviewer</string>
+</resources>

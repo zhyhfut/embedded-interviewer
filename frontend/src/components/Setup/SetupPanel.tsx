@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { getApiBase } from '../../api/client';
 
 interface Props {
   onStart: (
@@ -34,7 +35,7 @@ export default function SetupPanel({ onStart, isLoading }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    fetch('/api/interview/providers')
+    fetch(`${getApiBase()}/interview/providers`)
       .then((r) => r.json())
       .then((data) => {
         const available = data.providers || [];
@@ -94,15 +95,15 @@ export default function SetupPanel({ onStart, isLoading }: Props) {
   }, []);
 
   return (
-    <div className="flex items-center justify-center flex-1 p-6">
-      <div className="w-full max-w-2xl bg-[var(--bg-secondary)] rounded-2xl p-8 shadow-2xl border border-[var(--border)] fade-in">
-        <h2 className="text-2xl font-bold mb-2 text-center">嵌入式面试模拟</h2>
-        <p className="text-[var(--text-secondary)] text-center mb-8 text-sm">
-          模拟大疆、华为、理想等公司嵌入式与具身智能岗位面试
+    <div className="flex items-center justify-center flex-1 p-3 sm:p-6 safe-area-bottom">
+      <div className="w-full max-w-2xl bg-[var(--bg-secondary)] rounded-2xl p-5 sm:p-8 shadow-2xl border border-[var(--border)] fade-in">
+        <h2 className="text-xl sm:text-2xl font-bold mb-1 sm:mb-2 text-center">嵌入式面试模拟</h2>
+        <p className="text-[var(--text-secondary)] text-center mb-6 sm:mb-8 text-xs sm:text-sm">
+          模拟大疆、华为、乐鑫、小鹏等公司嵌入式与具身智能岗位面试
         </p>
 
         {/* 面试方向 */}
-        <div className="mb-6">
+        <div className="mb-5 sm:mb-6">
           <label className="block text-sm font-medium mb-2 text-[var(--text-secondary)]">
             面试方向
           </label>
@@ -128,11 +129,11 @@ export default function SetupPanel({ onStart, isLoading }: Props) {
         </div>
 
         {/* 简历输入方式 */}
-        <div className="mb-6">
+        <div className="mb-5 sm:mb-6">
           <label className="block text-sm font-medium mb-2 text-[var(--text-secondary)]">
             简历输入方式
           </label>
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
             {[
               { key: 'text', label: '粘贴文本' },
               { key: 'file', label: '上传文件' },
@@ -142,7 +143,7 @@ export default function SetupPanel({ onStart, isLoading }: Props) {
               <button
                 key={opt.key}
                 onClick={() => setInputMode(opt.key as any)}
-                className={`py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+                className={`py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-all ${
                   inputMode === opt.key
                     ? 'bg-[var(--accent)] text-white'
                     : 'bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:text-white'
@@ -156,7 +157,7 @@ export default function SetupPanel({ onStart, isLoading }: Props) {
 
         {/* 简历输入区域 */}
         {inputMode === 'text' && (
-          <div className="mb-6 fade-in">
+          <div className="mb-5 sm:mb-6 fade-in">
             <label className="block text-sm font-medium mb-2 text-[var(--text-secondary)]">
               粘贴简历内容
             </label>
@@ -164,13 +165,13 @@ export default function SetupPanel({ onStart, isLoading }: Props) {
               value={resumeText}
               onChange={(e) => setResumeText(e.target.value)}
               placeholder="将简历内容粘贴到这里..."
-              className="w-full h-40 bg-[var(--bg-tertiary)] border border-[var(--border)] rounded-xl p-3 text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] resize-none focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]/30 transition-all"
+              className="w-full h-32 sm:h-40 bg-[var(--bg-tertiary)] border border-[var(--border)] rounded-xl p-3 text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] resize-none focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]/30 transition-all"
             />
           </div>
         )}
 
         {inputMode === 'file' && (
-          <div className="mb-6 fade-in">
+          <div className="mb-5 sm:mb-6 fade-in">
             <label className="block text-sm font-medium mb-2 text-[var(--text-secondary)]">
               上传简历文件（PDF / DOCX）
             </label>
@@ -179,7 +180,7 @@ export default function SetupPanel({ onStart, isLoading }: Props) {
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
-              className={`w-full h-36 border-2 border-dashed rounded-xl flex flex-col items-center justify-center cursor-pointer transition-all ${
+              className={`w-full h-28 sm:h-36 border-2 border-dashed rounded-xl flex flex-col items-center justify-center cursor-pointer transition-all ${
                 isDragOver
                   ? 'border-[var(--accent)] bg-blue-500/10 scale-[1.01]'
                   : selectedFile
@@ -189,17 +190,17 @@ export default function SetupPanel({ onStart, isLoading }: Props) {
             >
               {selectedFile ? (
                 <div className="text-center">
-                  <div className="text-3xl mb-2">📄</div>
+                  <div className="text-2xl sm:text-3xl mb-2">📄</div>
                   <div className="text-sm font-medium">{selectedFile.name}</div>
                   <div className="text-xs text-[var(--text-secondary)] mt-1">
-                    {(selectedFile.size / 1024).toFixed(1)} KB · 点击更换或拖入新文件
+                    {(selectedFile.size / 1024).toFixed(1)} KB · 点击更换
                   </div>
                 </div>
               ) : (
                 <div className="text-center">
-                  <div className="text-3xl mb-2 opacity-50">📂</div>
+                  <div className="text-2xl sm:text-3xl mb-2 opacity-50">📂</div>
                   <div className="text-sm text-[var(--text-secondary)]">
-                    拖拽文件到此处，或点击选择
+                    点击选择文件
                   </div>
                   <div className="text-xs text-[var(--text-secondary)] mt-1 opacity-60">
                     支持 PDF、DOCX 格式
@@ -221,7 +222,7 @@ export default function SetupPanel({ onStart, isLoading }: Props) {
         )}
 
         {inputMode === 'feishu' && (
-          <div className="mb-6 fade-in">
+          <div className="mb-5 sm:mb-6 fade-in">
             <label className="block text-sm font-medium mb-2 text-[var(--text-secondary)]">
               飞书云文档链接
             </label>
@@ -236,7 +237,7 @@ export default function SetupPanel({ onStart, isLoading }: Props) {
         )}
 
         {/* 面试档位 */}
-        <div className="mb-6">
+        <div className="mb-5 sm:mb-6">
           <label className="block text-sm font-medium mb-2 text-[var(--text-secondary)]">
             面试档位
           </label>
@@ -265,7 +266,7 @@ export default function SetupPanel({ onStart, isLoading }: Props) {
         </div>
 
         {/* 模型选择 */}
-        <div className="mb-8">
+        <div className="mb-6 sm:mb-8">
           <label className="block text-sm font-medium mb-2 text-[var(--text-secondary)]">
             LLM 模型
           </label>
@@ -293,7 +294,7 @@ export default function SetupPanel({ onStart, isLoading }: Props) {
         </div>
 
         {/* 压力面模式 */}
-        <div className="mb-6">
+        <div className="mb-5 sm:mb-6">
           <label className="flex items-center gap-3 cursor-pointer group">
             <div
               onClick={() => setPressure(!pressure)}

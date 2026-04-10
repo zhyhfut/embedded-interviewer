@@ -1,4 +1,23 @@
-const API_BASE = '/api';
+// 检测是否运行在 Capacitor 原生环境中
+function isCapacitor(): boolean {
+  return !!(window as any).Capacitor?.isNativePlatform?.();
+}
+
+// 设置后端地址（供设置页面使用）
+export function setBackendUrl(url: string) {
+  localStorage.setItem('backend_url', url.replace(/\/$/, '') + '/api');
+}
+
+// 获取当前 API 基础路径（包含 /api 后缀）
+// 在 Capacitor 中：使用用户配置的后端地址（默认 localhost:8000）
+// 在浏览器中：使用相对路径 /api
+export function getApiBase(): string {
+  if (isCapacitor()) {
+    const stored = localStorage.getItem('backend_url');
+    return stored || 'http://localhost:8000/api';
+  }
+  return '/api';
+}
 
 export async function startInterview(
   config: {
@@ -36,7 +55,7 @@ export async function startInterview(
     formData.append('pressure', 'true');
   }
 
-  const response = await fetch(`${API_BASE}/interview/start`, {
+  const response = await fetch(`${getApiBase()}/interview/start`, {
     method: 'POST',
     body: formData,
   });
@@ -63,7 +82,7 @@ export async function sendAnswer(
   message: string,
   onChunk?: (content: string) => void,
 ): Promise<{ isFinished: boolean }> {
-  const response = await fetch(`${API_BASE}/interview/chat`, {
+  const response = await fetch(`${getApiBase()}/interview/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ session_id: sessionId, message }),
@@ -87,7 +106,7 @@ export async function sendAnswer(
 }
 
 export async function endInterview(sessionId: string) {
-  const response = await fetch(`${API_BASE}/interview/end`, {
+  const response = await fetch(`${getApiBase()}/interview/end`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ session_id: sessionId }),
@@ -96,7 +115,7 @@ export async function endInterview(sessionId: string) {
 }
 
 export async function generateReport(sessionId: string): Promise<string> {
-  const response = await fetch(`${API_BASE}/report/generate/${sessionId}`, {
+  const response = await fetch(`${getApiBase()}/report/generate/${sessionId}`, {
     method: 'POST',
   });
   const data = await response.json();
@@ -104,16 +123,16 @@ export async function generateReport(sessionId: string): Promise<string> {
 }
 
 export async function getSessionInfo(sessionId: string) {
-  const response = await fetch(`${API_BASE}/interview/sessions/${sessionId}`);
+  const response = await fetch(`${getApiBase()}/interview/sessions/${sessionId}`);
   return response.json();
 }
 
 export function getReportDownloadUrl(sessionId: string): string {
-  return `${API_BASE}/report/export-file/${sessionId}?format=markdown`;
+  return `${getApiBase()}/report/export-file/${sessionId}?format=markdown`;
 }
 
 export async function exportToFeishu(sessionId: string): Promise<string> {
-  const response = await fetch(`${API_BASE}/report/export-feishu`, {
+  const response = await fetch(`${getApiBase()}/report/export-feishu`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ session_id: sessionId }),
