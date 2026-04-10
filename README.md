@@ -19,6 +19,7 @@
 - [配置说明](#配置说明)
 - [如何切换模型和 API](#如何切换模型和-api)
 - [安卓 App 使用说明](#安卓-app-使用说明)
+- [云端部署（让手机 App 独立运行）](#云端部署让手机-app-独立运行)
 - [使用指南](#使用指南)
 - [项目结构](#项目结构)
 - [API 接口文档](#api-接口文档)
@@ -534,6 +535,10 @@ curl https://xxx.com/v1/chat/completions \
 
 本项目支持通过 [Capacitor](https://capacitorjs.com/) 将 Web 前端封装为 Android 原生 APK。
 
+> **两种使用模式：**
+> - **局域网模式**：App 连接同一局域网内的电脑后端（免费，适合在家使用）
+> - **云端模式**：App 连接云端服务器，独立运行，无需电脑（推荐，详见[云端部署](#云端部署让手机-app-独立运行)）
+
 ### 前置要求
 
 | 组件 | 版本要求 | 安装说明 |
@@ -628,6 +633,112 @@ adb reverse tcp:8000 tcp:8000
 
 ---
 
+## 云端部署（让手机 App 独立运行）
+
+默认情况下，APK 需要连接局域网内的电脑后端。如果希望手机 App **在任何地方都能独立使用**（不需要电脑），需要将后端部署到云端服务器。
+
+本项目支持一键部署到 [Railway](https://railway.app)（免费额度，无需信用卡）。
+
+### 第一步：注册 Railway
+
+1. 打开 https://railway.app
+2. 点击 **Login** → 选择 **GitHub** 登录
+3. 授权 Railway 访问你的 GitHub 仓库
+
+### 第二步：创建项目并部署
+
+1. 登录后点击 **New Project**
+2. 选择 **Deploy from GitHub Repo**
+3. 在仓库列表中找到 **zhyhfut/embedded-interviewer**，点击选中
+4. Railway 会自动检测项目根目录的 `Dockerfile`，开始构建（首次约 3-5 分钟）
+5. 等待构建完成，你会看到绿色的 ✅ 状态
+
+### 第三步：配置环境变量
+
+在 Railway 项目页面中：
+
+1. 点击你的服务（通常叫 `embedded-interviewer`）
+2. 切换到 **Variables** 标签页
+3. 点击 **+ New Variable**，添加以下变量：
+
+| 变量名 | 值 | 说明 |
+|--------|-----|------|
+| `LLM_PROVIDER` | `xiaomi` | 使用的小米 MiMo（免费） |
+| `XIAOMI_API_KEY` | `你的密钥` | 从 https://api.xiaomi.com 获取 |
+| `XIAOMI_BASE_URL` | `https://api.xiaomi.com/v1` | 小米 API 地址 |
+| `XIAOMI_MODEL` | `MiMo` | 模型名 |
+
+如果你用其他 LLM provider，参考[配置说明](#配置说明)填入对应的变量。
+
+> **注意**：不要填写 `HOST`、`PORT`、`DATA_DIR` 这些变量，Railway 会自动处理。
+
+### 第四步：生成域名
+
+1. 在服务页面切换到 **Settings** 标签
+2. 滚动到 **Networking** 部分
+3. 点击 **Generate Domain**
+4. Railway 会分配一个域名，类似：`https://embedded-interviewer-production-xxxx.up.railway.app`
+5. 复制这个 URL
+
+### 第五步：测试访问
+
+在浏览器打开你的 Railway 域名，应该能看到面试模拟的界面。也可以访问 `https://你的域名/api/health` 确认后端正常。
+
+### 第六步：重新打包 APK（内置云端地址）
+
+拿到 Railway 域名后，修改 `frontend/capacitor.config.json` 中的 `server` 配置，然后重新构建：
+
+```bash
+cd frontend
+
+# 编辑 capacitor.config.json，取消注释 server 配置并填入你的域名
+# 例如：
+# "server": {
+#   "url": "https://embedded-interviewer-production-xxxx.up.railway.app",
+#   "cleartext": false
+# }
+
+npm run build
+npx cap sync
+cd android
+./gradlew assembleDebug
+```
+
+或使用一键脚本（Windows）：
+```cmd
+build-apk.bat
+```
+
+新的 APK 内置了云端地址，安装后即可独立运行，无需连接电脑。
+
+### 部署后的使用方式
+
+1. 在手机上安装重新打包的 APK（或直接使用项目根目录的 `embedded-interviewer.apk`）
+2. 打开 App，即可开始面试
+3. 手机可以在任何网络环境下使用（4G/5G/Wi-Fi 均可）
+
+### 重要说明
+
+- **Railway 免费额度**：每月 $5 免费额度，足够个人使用。超出资费很低
+- **冷启动**：免费版如果 15 分钟无人访问会休眠，首次唤醒约需 10-20 秒
+- **数据持久化**：Railway 免费版不支持持久化磁盘，重启后面试历史会丢失（不影响进行中的面试）
+- **API Key 安全**：环境变量在 Railway 后台加密存储，不会泄露
+- **自定义域名**：Railway 支持绑定自己的域名（可选）
+
+### 更新部署
+
+推送代码到 GitHub 后，Railway 会自动重新部署：
+
+```bash
+git add .
+git commit -m "your changes"
+git push origin main
+```
+
+如果修改了环境变量，Railway 会自动重启服务。
+
+---
+
 ## 使用指南
 
 ### 开始面试
@@ -691,7 +802,10 @@ embedded-interviewer/
 ├── start.ps1                    # 一键启动脚本（Windows PowerShell）
 ├── setup-android-sdk.bat        # 安装安卓构建工具（Windows）
 ├── build-apk.bat                # 一键构建 APK（Windows）
-├── docker-compose.yml           # Docker 编排
+├── Dockerfile                   # 云端部署用（Railway 等）
+├── railway.json                 # Railway 部署配置
+├── docker-compose.yml           # 本地 Docker 编排
+├── embedded-interviewer.apk     # 预构建的安卓 APK
 ├── .env.example                 # 环境变量模板
 ├── .env                         # 你的配置（git 不跟踪）
 ├── README.md                    # 本文档
@@ -786,6 +900,17 @@ docker compose up --build
 docker compose -f docker-compose.yml up -d --build
 ```
 
+### 云端部署（Railway 等平台）
+
+项目根目录的 `Dockerfile` 用于云端部署，会同时构建前端和后端。详见[云端部署](#云端部署让手机-app-独立运行)章节。
+
+本地也可以用根目录 Dockerfile 测试：
+```bash
+# 构建并运行（需要在 .env 中配置 API Key）
+docker build -t embedded-interviewer .
+docker run -p 8000:8000 --env-file .env embedded-interviewer
+```
+
 ### 只启动后端（前端由其他方式托管）
 ```bash
 cd backend
@@ -838,12 +963,19 @@ where python
 2. **关闭 App Execution Alias**：Windows 设置 -> 应用 -> 高级应用设置 -> 应用执行别名 -> 关闭 python.exe 和 python3.exe
 
 ### Q: 如何在安卓手机上使用
-A: 有两种方式：
-1. **PWA 方式**（最简单）：在手机 Chrome 浏览器访问后端地址 → 菜单 → "添加到主屏幕"
-2. **APK 方式**（体验更好）：按照"安卓 App 使用说明"章节构建 APK 并安装
+A: 有三种方式：
+1. **云端部署（推荐，完全独立）**：按照[云端部署](#云端部署让手机-app-独立运行)章节将后端部署到 Railway，手机 App 在任何网络下都能使用
+2. **局域网 APK**：安装 APK 后连接同一局域网的电脑后端
+3. **PWA 方式**：在手机 Chrome 浏览器访问后端地址 → 菜单 → "添加到主屏幕"
 
 ### Q: APK 安装后无法连接后端
-A: 确认手机和电脑在同一局域网，且后端使用 `--host 0.0.0.0` 启动。在手机浏览器先访问 `http://电脑IP:8000/api/health` 测试连通性。
+A: 确认手机和电脑在同一局域网，且后端使用 `--host 0.0.0.0` 启动。在手机浏览器先访问 `http://电脑IP:8000/api/health` 测试连通性。如果使用云端部署，确认 Railway 域名可以正常访问。
+
+### Q: Railway 部署失败怎么办
+A: 常见原因：
+1. **构建超时**：Railway 免费版构建有时限，重试通常能成功
+2. **环境变量未配置**：确认在 Railway Variables 中至少配置了一个 LLM provider 的 API Key
+3. **查看日志**：Railway 项目页面 → **Deployments** → 点击最新部署 → **Build Logs** 或 **Deploy Logs** 查看错误信息
 
 ---
 
